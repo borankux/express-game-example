@@ -1,0 +1,2 @@
+live:
+	nodemon main.js
