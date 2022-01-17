@@ -22,6 +22,31 @@
     },
     mounted() {
       this.roomId = this.$route.query.id
+    },
+    created() {
+      const socket = this.$sockets.socket('/game')
+
+      socket.on('connect', () => {
+        this.connected = true;
+        let roomId = this.$route.query.id
+        let token = localStorage.getItem('token')
+        socket.emit('client-ready', {
+          room: roomId,
+          token: token
+        })
+      })
+
+      socket.on('disconnect', () => {
+        this.connected = false
+      })
+
+      socket.on('init-game', (initial) => {
+        console.log(initial);
+      })
+
+      socket.on("game-init", (frame) => {
+        console.log(frame);
+      })
     }
   }
 </script>

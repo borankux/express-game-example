@@ -9,7 +9,7 @@ const serveHomePage= (req, res) => {
 
 const serveAuth = (req, res) => {
     let token = req.query.token;
-    if(!token || token === "undefined") {
+    if(!token || token === "undefined" || token ==="null") {
         //refreshing token
         token = generateToken()
     }

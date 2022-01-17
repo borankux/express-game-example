@@ -9,8 +9,9 @@
 </template>
 
 <script>
-  import {RefreshToken} from "../api/auth";
-  import {CreateRoom} from "../api/room";
+  import { RefreshToken } from "../api/auth";
+  import { CreateRoom } from "../api/room";
+
   export default {
     name: 'game',
     data () {
