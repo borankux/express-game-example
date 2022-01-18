@@ -1,0 +1,8 @@
+@font-face {
+  font-family: 'Nes';
+  src: url("../fonts/nes.woff2");
+}
+
+* {
+  font-family: 'Nes', serif;
+}

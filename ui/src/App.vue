@@ -1,12 +1,30 @@
 <template>
   <div id="app">
+    <dot :on="connected" label="Game Server"></dot>
     <router-view/>
   </div>
 </template>
 
 <script>
+import Dot from "./atoms/dot";
 export default {
-  name: 'App'
+  name: 'App',
+  components: {Dot},
+  data() {
+    return {
+      connected: false
+    }
+  },
+  created() {
+    let socket = this.$sockets.socket('/')
+    socket.on('connect', () => {
+      this.connected = true
+    })
+
+    socket.on('disconnect', () => {
+      this.connected = false
+    })
+  }
 }
 </script>
 
