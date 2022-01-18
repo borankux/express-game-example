@@ -3,7 +3,7 @@
     <dot :on="connected" label="Server"/>
     <h3>Home Page</h3>
     <span>{{msg}}</span> <br>
-    <span>{{tick.time}}</span>
+    <span>{{JSON.stringify(tick)}}</span>
     <div class="links">
         <router-link to="/game">Game</router-link>
     </div>

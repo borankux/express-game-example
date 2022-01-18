@@ -1,22 +1,31 @@
+const { getGameRooms } = require('../game-tool')
 const moment = require("moment");
-
-const tick = (socket) => {
+const tick = (socket, games) => {
     setInterval(() => {
+        let rooms = getGameRooms(games)
+        console.log(rooms);
         socket.emit("tick", {
-            time: moment().toISOString()
+            rooms: rooms,
+            time: moment.now()
         })
     }, 1000)
 }
 
-module.exports = (socket)=> {
-    console.log(`admin:connect:${socket.id}`);
-    tick(socket)
+function handleAdmin(games) {
+    return function (socket) {
+        console.log(`admin:connect:${socket.id}`);
+        tick(socket, games)
 
-    socket.on("disconnect", () => {
-        console.log(`admin:disconnect:${socket.id}`);
-    })
+        socket.on("disconnect", () => {
+            console.log(`admin:disconnect:${socket.id}`);
+        })
 
-    socket.on('client-ready', (data) => {
-        console.log(data);
-    })
+        socket.on('client-ready', (data) => {
+            console.log(data);
+        })
+    }
+}
+
+module.exports = {
+    handleAdmin,
 }
