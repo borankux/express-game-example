@@ -23,6 +23,7 @@ class Game {
         this.loop = setInterval(()=>{
             if(this.status !== this.GAME_PAUSED) {
                 let time = moment().toISOString()
+                console.log(`updating for room:${this.room}`);
                 this.socket.broadcast.to(this.room).emit('update', {
                     time: time,
                     users: Array.from(this.users)

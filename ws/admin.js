@@ -3,7 +3,6 @@ const moment = require("moment");
 const tick = (socket, games) => {
     setInterval(() => {
         let rooms = getGameRooms(games)
-        console.log(rooms);
         socket.emit("tick", {
             rooms: rooms,
             time: moment.now()

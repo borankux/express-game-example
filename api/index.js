@@ -1,13 +1,15 @@
 const { generateToken } = require("../utils/token");
 const { generateRoomID } = require("../utils/room");
+const redis = require('../redis').client
+const express = require('express')
 
-const serveHomePage= (req, res) => {
+const handleHomePage= (req, res) => {
     res.json({
         a:'b'
     })
 }
 
-const serveAuth = (req, res) => {
+const handleAuth = (req, res) => {
     let token = req.query.token;
     if(!token || token === "undefined" || token ==="null") {
         //refreshing token
@@ -19,7 +21,7 @@ const serveAuth = (req, res) => {
     })
 }
 
-const serveCreateRoom = (req, res, next) => {
+const handleCreateRoom = (req, res, next) => {
     let token = req.header("X-Game-Token")
     //do something with the token
     let generator = generateRoomID()
@@ -29,7 +31,7 @@ const serveCreateRoom = (req, res, next) => {
     })
 }
 
-const serveCheckRoom = (req, res, next) => {
+const handleCheckRoom = (req, res, next) => {
     let id = req.query.id
     //check room and return result
     res.json({
@@ -37,11 +39,35 @@ const serveCheckRoom = (req, res, next) => {
     })
 }
 
+const handleGetUser = (req,res) => {
+    (async () => {
+        let token = req.query.token
+        let user = await redis.EXISTS(`user:${token}`)
+        res.json(user)
+    })()
+}
+
+const handleCreateUser = (req,res) => {
+    (async () => {
+        let name = req.query.name;
+        await redis.HSET(`user:${token}`, {
+            name: name
+        })
+        res.json({})
+    })()
+
+}
+
+/**
+ * @param app{express}
+ */
 const initAPI = (app) => {
-    app.get('/', serveHomePage)
-    app.get('/api/auth', serveAuth)
-    app.post('/api/room', serveCreateRoom)
-    app.get('/api/room', serveCheckRoom)
+    app.get( '/',          handleHomePage)
+    app.get( '/api/auth',  handleAuth)
+    app.post('/api/room',  handleCreateRoom)
+    app.get( '/api/room',  handleCheckRoom)
+    app.get( '/api/user',  handleGetUser)
+    app.get( '/api/user',  handleCreateUser)
 }
 
 module.exports = {

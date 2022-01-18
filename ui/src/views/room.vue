@@ -16,7 +16,7 @@
       </div>
       <span>{{game_status}}</span>
       <button @click="startGame">Start Game</button>
-      <button @click="getStatus">Status</button>
+      <button @click="getStatus">Exit Room</button>
     </div>
   </div>
 </template>
@@ -40,9 +40,6 @@
         users:[]
       }
     },
-    mounted() {
-      this.roomId = this.$route.query.id
-    },
     methods: {
       getStatus() {
         console.log(this.socket.rooms);
@@ -57,6 +54,7 @@
       }
     },
     created() {
+      this.roomId = this.$route.query.id
       const socket = this.$sockets.socket('/game')
 
       socket.on('connect', () => {
@@ -74,19 +72,15 @@
       })
 
       socket.on('init-game', (initial) => {
-        console.log(initial);
-      })
-
-      socket.on("game-init", (frame) => {
-        console.log(frame);
+        let room = initial.room
+        console.log("i am joining room:",room);
+        console.log(socket);
       })
 
       socket.on('update', (frame) => {
         if(frame['users']) {
-          console.log('has users:'+ frame['users'].length)
           this.users = frame['users']
         }
-        console.log(frame);
       })
 
       this.socket = socket;

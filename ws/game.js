@@ -1,14 +1,17 @@
-const {Game} = require("../game");
+const {Game} = require("../models/game");
+const {User} = require("../models/user");
 
 /**
  *
  * @param games {Map}
+ * @params users {Set}
  * @returns {(function(*): void)|*}
  */
-function handleGames(games) {
+function handleGames(games, users) {
     return function (socket){
-        console.log(`game:connect:${socket.id}`);
+        let user = new User()
         socket.on("disconnect", () => {
+            socket.leaveAll()
             console.log(`game:disconnect:${socket.id}`);
         })
 
@@ -16,15 +19,15 @@ function handleGames(games) {
             let room = data.room;
             let token = data.token;
             socket.join(room)
+            socket.emit('init-game', {
+                room:room
+            })
+
             console.log(room, token);
             console.log(`user:${token} is requesting for game start for room${room}`);
             if (games.has(room)) {
                 let game = games.get(room)
                 game.addUser(token)
-                socket.emit('update', {
-                    result:false,
-                    message:'game already started'
-                })
                 console.log(`game:${room} already exists!`)
                 return
             }
