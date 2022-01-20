@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "less-loader": "^4.1.0",
+    "nes.icons": "^2.0.1",
     "socket.io-client": "^4.4.1",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"

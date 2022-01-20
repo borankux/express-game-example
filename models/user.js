@@ -1,3 +1,4 @@
+const redis = require('../redis').client
 class User {
     constructor(token, name) {
         this.token = token;
@@ -32,6 +33,11 @@ class UserList {
             }
         })
         return token
+    }
+
+    static async getUserByToken(token) {
+        let user = await redis.HGETALL(`user:${token}`)
+        return new User(token, user.name)
     }
 }
 

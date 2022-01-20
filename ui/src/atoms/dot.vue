@@ -1,7 +1,7 @@
 <template>
   <div>
     <div :class="on ? 'status connected':'status'"></div>
-    <div class="label">{{label}}</div>
+    <div class="label nes-text is-warning">{{label}}</div>
   </div>
 </template>
 

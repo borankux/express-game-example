@@ -1,5 +1,5 @@
 const {Game} = require("../models/game");
-const {User} = require("../models/user");
+const {User, UserList} = require("../models/user");
 
 /**
  *
@@ -9,11 +9,15 @@ const {User} = require("../models/user");
  */
 function handleGames(games, users) {
     return function (socket){
-        let user = new User()
         socket.on("disconnect", () => {
             socket.leaveAll()
             console.log(`game:disconnect:${socket.id}`);
         })
+
+        socket.on('dragging', (pos) => {
+            let room = pos.room;
+            socket.broadcast.to(room).emit('draw', pos)
+         })
 
         socket.on('client-ready', (data) => {
             let room = data.room;
@@ -22,35 +26,38 @@ function handleGames(games, users) {
             socket.emit('init-game', {
                 room:room
             })
-
-            console.log(room, token);
             console.log(`user:${token} is requesting for game start for room${room}`);
             if (games.has(room)) {
                 let game = games.get(room)
-                game.addUser(token)
+                UserList.getUserByToken(token).then((user) => {
+                    game.addUser(user)
+                })
                 console.log(`game:${room} already exists!`)
                 return
             }
 
             let game = new Game(room, socket)
-            game.start()
-            game.addUser(token)
-            games.set(room, game)
-            console.log(`started new game:${room}:by user:${token}`)
+            UserList.getUserByToken(token).then((user) => {
+                game.startLoop()
+                game.addUser(user)
+                games.set(room, game)
+                console.log(`started new game:${room}:by user:${token}`)
+            })
         })
 
         socket.on('start-game', (data) => {
             let room = data.room;
 
             if(!games.has(room)) {
-                socket.emit('update', {
+                socket.emit('error', {
                     status:'not exists!'
                 })
                 return
             }
 
             let game = games.get(room)
-            socket.emit('update', {
+            game.startGame();
+            socket.emit('error', {
                 status:'started successfully !',
                 code: game.status,
             })

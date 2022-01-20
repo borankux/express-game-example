@@ -2,6 +2,8 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import "nes.css/css/nes.min.css";
+import "nes.icons/css/nes-icons.min.css"
+
 import "./assets/css/font.css";
 
 Vue.config.productionTip = false

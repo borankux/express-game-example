@@ -1,18 +1,12 @@
 <template>
   <div class="page home">
-    <div class="greetings" v-if="!showForm">
-      <span class="nes-text is-success">Ciao {{user.name}}</span>
-      <div style="margin: 20px auto">
-        <button class="nes-btn is-success">Enter the Game</button>
-      </div>
-    </div>
     <div class="form" v-if="showForm" style="margin: 20px auto;padding: 10px;">
       <div class="nes-container with-title is-centered">
         <p class="title">Notice!</p>
-        <p>
-          You need a name to play the game
+        <p class="nes-text is-warning">
+          To play the Game,
+          Give me your Name
         </p>
-        <p>:)</p>
       </div>
       <div class="nes-field npt">
         <label for="name_field">Your name</label>
@@ -20,6 +14,14 @@
       </div>
       <button @click="saveName" class="nes-btn">Save</button>
     </div>
+
+    <div class="greetings" v-if="!showForm">
+      <span class="nes-text is-success">Ciao {{user.name}}</span>
+      <div style="margin: 20px auto">
+        <button class="nes-btn is-success" @click="enterGame">Enter the Game</button>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -39,6 +41,11 @@ import {GetUser, SaveUserName} from "../api/user";
       }
     },
     methods: {
+      enterGame() {
+        this.$router.push({
+          path:'/game'
+        })
+      },
       saveName() {
         let name = this.name;
         SaveUserName(name).then(res => {

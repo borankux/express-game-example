@@ -7,7 +7,7 @@ const CLEANER_TICK = 3000
  */
 function initCleaners(io) {
     setInterval(() => {
-        console.log(io._nsps.get('/game').adapter.rooms);
+        //console.log(io._nsps.get('/game').adapter.rooms);
     }, CLEANER_TICK)
 }
 

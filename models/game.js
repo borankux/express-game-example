@@ -16,7 +16,11 @@ class Game {
         this.users = new Set()
     }
 
-    start() {
+    shout(event, data) {
+        this.socket.broadcast.to(this.room).emit(event, data)
+    }
+
+    startLoop() {
         if (this.status !== this.GAME_DEFAULT) {
             return false
         }
@@ -24,14 +28,25 @@ class Game {
             if(this.status !== this.GAME_PAUSED) {
                 let time = moment().toISOString()
                 console.log(`updating for room:${this.room}`);
-                this.socket.broadcast.to(this.room).emit('update', {
+                this.shout('update', {
                     time: time,
-                    users: Array.from(this.users)
+                    users: Array.from(this.users),
+                    game: {
+                        status: this.status
+                    }
                 })
             }
         }, this.GAME_TICK)
-        this.status = this.GAME_RUNNING
         return true;
+    }
+
+    startGame() {
+        if (this.status === this.GAME_PAUSED || this.GAME_READY) {
+            this.status = this.GAME_RUNNING;
+            this.shout('game-started', {
+                game: this.status
+            })
+        }
     }
 
     resume() {
@@ -61,11 +76,21 @@ class Game {
         return true;
     }
 
-    addUser(token) {
-        if (this.users.has(token)) {
+    addUser(user) {
+        let added = false;
+        this.users.forEach(item => {
+            if (item.token === user.token) {
+                console.log('user exists:' + user.name)
+                added = true
+                return false
+            }
+        })
+
+        if (added) {
             return false
         }
-        this.users.add(token)
+
+        this.users.add(user)
         return true
     }
 

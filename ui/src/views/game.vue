@@ -2,8 +2,15 @@
   <div class="page game">
     <span>{{token}}</span>
     <div class="options">
-      <button @click="createRoom">Create Room</button>
-      <button @click="enterRoom">Enter Room</button>
+      <div>
+        <button @click="createRoom" class="nes-btn is-success">Create Room</button>
+      </div>
+      <div style="margin-top: 20px;">
+        <button @click="enterRoom" class="nes-btn is-success">Enter Room</button>
+      </div>
+      <div style="margin-top: 20px;">
+        <i class="nes-ash"></i>
+      </div>
     </div>
   </div>
 </template>
@@ -57,5 +64,7 @@
 </script>
 
 <style>
-
+  .options {
+    text-align: center;
+  }
 </style>
