@@ -9,25 +9,27 @@ class Game {
     GAME_ENDED = 4
     GAME_TICK = 1000
 
-    constructor(room, socket) {
+    constructor(room, socket, io) {
         this.status = this.GAME_DEFAULT
         this.room = room
+        this.io = io;
         this.socket = socket
         this.users = new Set()
     }
 
     shout(event, data) {
-        this.socket.broadcast.to(this.room).emit(event, data)
+        console.log(`sending to room:${this.room}`);
+        this.io.in(this.room).emit(event, data)
     }
 
     startLoop() {
         if (this.status !== this.GAME_DEFAULT) {
             return false
         }
+        
         this.loop = setInterval(()=>{
             if(this.status !== this.GAME_PAUSED) {
                 let time = moment().toISOString()
-                console.log(`updating for room:${this.room}`);
                 this.shout('update', {
                     time: time,
                     users: Array.from(this.users),
@@ -58,14 +60,7 @@ class Game {
     }
 
     stop() {
-
-        if(this.status !== this.GAME_PAUSED || this.status !== this.GAME_RUNNING) {
-            return false
-        }
-
         clearInterval(this.loop)
-        this.status = this.GAME_ENDED
-        return true
     }
 
     pause() {

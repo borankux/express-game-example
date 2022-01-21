@@ -1,13 +1,16 @@
 const {Game} = require("../models/game");
 const {User, UserList} = require("../models/user");
+const redis = require('../redis').client
+const {Server}  = require('socket.io')
 
 /**
  *
  * @param games {Map}
- * @params users {Set}
+ * @param users {Set}
+ * @param io {Server}
  * @returns {(function(*): void)|*}
  */
-function handleGames(games, users) {
+function handleGames(games, users, io) {
     return function (socket){
         socket.on("disconnect", () => {
             socket.leaveAll()
@@ -20,12 +23,14 @@ function handleGames(games, users) {
          })
 
         socket.on('client-ready', (data) => {
+            console.log('some client is ready');
             let room = data.room;
             let token = data.token;
-            socket.join(room)
+            socket.join(room);
             socket.emit('init-game', {
                 room:room
-            })
+            });
+
             console.log(`user:${token} is requesting for game start for room${room}`);
             if (games.has(room)) {
                 let game = games.get(room)
@@ -36,7 +41,7 @@ function handleGames(games, users) {
                 return
             }
 
-            let game = new Game(room, socket)
+            let game = new Game(room, socket, io)
             UserList.getUserByToken(token).then((user) => {
                 game.startLoop()
                 game.addUser(user)
@@ -60,6 +65,17 @@ function handleGames(games, users) {
             socket.emit('error', {
                 status:'started successfully !',
                 code: game.status,
+            })
+        })
+
+        socket.on('clear-all', () => {
+            games.forEach(game => {
+                game.stop()
+            })
+
+            games.clear();
+            redis.flushAll().then(r => {
+                console.log('flushed everything');
             })
         })
     }

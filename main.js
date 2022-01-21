@@ -29,7 +29,10 @@ let games = new Map()
 let users = new Set()
 
 io.of("/admin", handleAdmin(games))
-io.of("/game", handleGames(games, users))
+io.of("/game", handleGames(games, users, io))
+io.of('/game').adapter.on('join-room', (room, id) => {
+    console.log('some one joining room:',room, id);
+})
 
 initAPI(app)
 initCleaners(io)

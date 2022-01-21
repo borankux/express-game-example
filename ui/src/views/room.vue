@@ -1,27 +1,27 @@
 <template>
   <div class="page room">
     <span>{{roomId}}</span>
-    <div>
-      <span>{{token}}</span>
-    </div>
     <dot :on="connected" :label="'Game:' + game_status"/>
     <div>
-      <div class="user-list">
-
-        <div class="user" v-for="(user, idx) of users" v-bind:key="idx">
-          <div class="avatar"></div>
-          <div class="user-name">{{user.name}}</div>
+      <div>
+        <div class="user-list">
+          <div class="user" v-for="(user, idx) of users" v-bind:key="idx">
+            <div class="avatar"></div>
+            <div class="user-name">{{user.name}}</div>
+          </div>
         </div>
-
-        <div ref="box" class="nes-container box" style="width: 100%;height: 200px;">
+        <div ref="box" class="nes-container box">
           <div class="ball" ref="ball" id="ball" v-drag></div>
         </div>
 
       </div>
-      <span>{{game_status}}</span>
-      <div style="text-align: center;">
-        <button @click="startGame" class="nes-btn" v-if="game_status<2">Start Game</button>
-        <button @click="getStatus" class="nes-btn" v-if="game_status>=2">Exit Room</button>
+      <div>
+        <span>{{game_status}}</span>
+        <div style="text-align: center;">
+          <button @click="startGame" class="nes-btn" v-if="game_status<2">Start Game</button>
+          <button @click="getStatus" class="nes-btn" v-if="game_status>=2">Exit Room</button>
+          <button @click="clearAll" class="nes-btn">Clear All</button>
+        </div>
       </div>
     </div>
   </div>
@@ -40,20 +40,43 @@
     directives: {
       drag: {
         inserted: function (el, binding, vnode) {
-          el.onmousedown = e => {
-            let disX = e.clientX - el.offsetLeft;
-            let disY = e.clientY - el.offsetTop;
-            document.onmousemove = e => {
-              let left = e.clientX - disX;
-              let top = e.clientY - disY;
+          el.ontouchstart = e => {
+            let touch = e.touches[0];
+            let disX = touch.pageX - el.offsetLeft;
+            let disY = touch.pageY - el.offsetTop;
+            document.ontouchmove = e => {
+              let father = el.parentElement;
+              let maxHeight = father.clientHeight - el.clientHeight
+              let maxWidth = father.clientWidth - el.clientWidth
+              let nt = e.touches[0]
+              let left = nt.pageX - disX;
+              let top = nt.pageY - disY;
+
+              if(left < 0) {
+                left = 0;
+              }
+
+              if (top < 0) {
+                top = 0;
+              }
+
+              if (top > maxHeight ) {
+                top = maxHeight
+              }
+
+              if (left > maxWidth) {
+                left = maxWidth
+              }
+
               vnode.context.dragging(left, top);
+
               el.style.left = left + "px";
               el.style.top = top + "px";
             };
 
-            document.onmouseup = e => {
-              document.onmousemove = null;
-              document.onmouseup = null;
+            document.ontouchend = e => {
+              document.ontouchmove = null;
+              document.ontouchend = null;
             };
           }
         },
@@ -81,6 +104,12 @@
       getStatus() {
         console.log(this.socket.rooms);
       },
+      clearAll() {
+        this.socket.emit('clear-all')
+        this.$router.push({
+          path:'/'
+        })
+      },
       startGame() {
         let roomId = this.$route.query.id
         let token = localStorage.getItem('game-token')
@@ -90,7 +119,7 @@
         })
       }
     },
-    created() {
+    mounted() {
       this.roomId = this.$route.query.id
       const socket = this.$sockets.socket('/game')
 
@@ -102,44 +131,46 @@
           room: roomId,
           token: token
         })
+
+        socket.on('disconnect', () => {
+          this.connected = false
+        })
+
+        socket.on('init-game', (initial) => {
+          let room = initial.room
+          console.log("i am joining room:",room);
+        })
+
+        socket.on('draw', (pos) => {
+          console.log(pos.x, pos.y);
+          let ball = document.getElementById('ball')
+          ball.style.left = pos.x + 'px'
+          ball.style.top = pos.y + 'px'
+        })
+
+        socket.onAny((data) => {
+          console.log(data);
+        })
+
+        socket.on('update', (frame) => {
+          if(frame['users']) {
+            this.users = frame['users']
+          }
+
+          if(frame['game']) {
+            this.game_status = frame['game'].status
+          }
+        })
+        socket.on('error', (error) => {
+          console.log(error);
+        })
+
+        socket.on('game-started', (data) => {
+          console.log(data);
+          this.game_status = data.game;
+        })
+
       })
-
-      socket.on('disconnect', () => {
-        this.connected = false
-      })
-
-      socket.on('init-game', (initial) => {
-        let room = initial.room
-        console.log("i am joining room:",room);
-        console.log(socket);
-      })
-
-      socket.on('draw', (pos) => {
-        console.log(pos.x, pos.y);
-        let ball = document.getElementById('ball')
-        ball.style.left = pos.x + 'px'
-        ball.style.top = pos.y + 'px'
-      })
-
-      socket.on('update', (frame) => {
-        if(frame['users']) {
-          this.users = frame['users']
-        }
-
-        if(frame['game']) {
-          this.game_status = frame['game'].status
-        }
-      })
-
-      socket.on('error', (error) => {
-        console.log(error);
-      })
-
-      socket.on('game-started', (data) => {
-        console.log(data);
-        this.game_status = data.game;
-      })
-
       this.socket = socket;
     }
   }
@@ -178,6 +209,9 @@
 
 
   .box {
+    margin: 10px auto;
+    width: 350px;
+    height: 200px;
     position: relative;
   }
 
